@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Futsal Tournament Scoreboard</title>
+<style>
+:root{--panel:#0d1b2e;--muted:#a9bad0;--white:#f7faff;--blue:#1677ed;--red:#e44350;--green:#20bd83;--gold:#ffc653}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 50% -15%,#1b3b60 0,#091426 48%,#030812 100%);font-family:Arial,Helvetica,sans-serif;color:var(--white)}
+button,input{font:inherit}
+button{border:0;border-radius:11px;padding:13px 18px;font-weight:900;cursor:pointer;color:white;background:#293e59}
+button:hover{filter:brightness(1.13)}
+.hidden{display:none!important}
+header{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:9px 2vw;border-bottom:1px solid #ffffff20;background:#02071299}
+.brand{display:flex;align-items:center;gap:12px}
+.logo{height:38px;width:38px;border-radius:12px;background:linear-gradient(145deg,#2dc9ff,#1263c9);display:grid;place-items:center;font-size:24px;overflow:hidden}
+.logo img{width:100%;height:100%;object-fit:contain;border-radius:inherit}
+.logo.has-image{background:#ffffff;padding:2px}
+.brand-title{font-size:clamp(16px,2vw,24px);font-weight:1000;letter-spacing:1.3px}
+.brand-sub{font-size:10px;color:var(--muted);letter-spacing:2px;margin-top:4px}
+.header-actions{display:flex;gap:8px}
+.header-actions button{font-size:12px;padding:10px 13px}
+main{max-width:1300px;margin:auto;padding:12px 2vw 18px}
+.setup-wrap{max-width:700px;margin:12px auto}
+.setup-card{background:linear-gradient(145deg,#10233b,#0b1728);border:1px solid #35506e;border-radius:22px;padding:clamp(16px,2.5vw,28px);box-shadow:0 25px 70px #0008}
+.setup-heading{text-align:center;margin-bottom:18px}
+.trophy{font-size:34px}
+.setup-heading h1{font-size:clamp(22px,4vw,34px);margin:10px 0 6px}
+.setup-heading p{color:var(--muted);font-size:13px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.field{display:flex;flex-direction:column;gap:8px}
+.field.full{grid-column:1/-1}
+.field label{font-size:12px;color:#b9cbe0;font-weight:800;letter-spacing:1px}
+.field input{width:100%;padding:14px;background:#061121;border:1px solid #38516d;border-radius:10px;color:white;outline:none;font-weight:700}
+.field input:focus{border-color:#39bdf5}
+.team-field{padding:16px;border-radius:14px;border:1px solid #ffffff20}
+.team-field.a{background:#10355e}
+.team-field.b{background:#55212b}
+.team-field label{font-size:11px;letter-spacing:2px}
+.ok-btn{width:100%;margin-top:24px;background:linear-gradient(135deg,#20c58a,#087c57);font-size:16px;padding:17px}
+.hint{font-size:11px;color:#91a6bf;line-height:1.5;margin-top:14px;text-align:center}
+#matchScreen{max-width:1500px;margin:auto}
+.event-line{text-align:center;color:#a9bdd4;font-size:12px;font-weight:900;letter-spacing:3px;margin:2px 0 10px;text-transform:uppercase}
+.timer-card{border:1px solid #35506e;border-radius:20px;overflow:hidden;background:linear-gradient(145deg,#10223a,#081322);box-shadow:0 24px 75px #0008}
+.timer-area{text-align:center;padding:clamp(10px,2vw,22px) 12px;background:linear-gradient(180deg,#142b48,#0c1a2d);border-bottom:1px solid #ffffff20}
+.timer-label{font-size:clamp(11px,1.2vw,15px);font-weight:900;letter-spacing:5px;color:#a8c0dc}
+.timer{font-size:clamp(72px,12vw,155px);line-height:1;font-weight:1000;letter-spacing:3px;font-variant-numeric:tabular-nums;margin:6px 0;color:white;text-shadow:0 0 25px #39c6ff55}
+.timer.paused{color:#ffcf61}
+.timer.finished{color:#ff5968}
+.period{display:inline-block;border-radius:999px;padding:6px 14px;background:#1c3552;border:1px solid #46617e;color:#dcecff;font-size:12px;font-weight:900;margin-bottom:8px}
+.team-grid{display:grid;grid-template-columns:1fr 1fr}
+.team{padding:clamp(12px,2vw,24px);text-align:center;min-width:0}
+.team.home{background:linear-gradient(145deg,#123e70,#0b1c32)}
+.team.away{background:linear-gradient(145deg,#702b37,#2b1420);border-left:1px solid #ffffff20}
+.team-name{font-size:clamp(18px,2.4vw,32px);font-weight:1000;text-transform:uppercase;overflow-wrap:anywhere}
+.team-label{font-size:10px;color:#c3d4e8;letter-spacing:3px;font-weight:900;margin-bottom:9px}
+.score-label,.foul-label{font-size:11px;color:#c5d5e8;letter-spacing:3px;font-weight:900}
+.score{font-size:clamp(52px,7vw,88px);line-height:1.05;font-weight:1000;margin:3px 0 5px;font-variant-numeric:tabular-nums}
+.score-buttons{display:flex;justify-content:center;gap:8px}
+.score-buttons button{font-size:19px;width:43px;height:37px;padding:0;background:#ffffff20}
+.foul-block{margin:12px auto 0;padding-top:10px;border-top:1px solid #ffffff30;max-width:300px}
+.foul-count{font-size:clamp(30px,4vw,44px);font-weight:1000;margin:2px 0 6px;font-variant-numeric:tabular-nums}
+.foul-count.alert{color:#ffcc58}
+.foul-label{font-size:18px;letter-spacing:3px}
+.foul-buttons{display:flex;justify-content:center;align-items:center;gap:8px}
+.foul-plus,.foul-minus{background:#ffffff20;border:1px solid #ffffff45;width:42px;height:38px;padding:0;font-size:22px;border-radius:9px}
+.foul-minus{color:white}
+.controls{display:flex;justify-content:center;gap:9px;flex-wrap:wrap;padding:12px;background:#071321}
+.controls button{min-width:120px;padding:11px 15px;font-size:13px}
+.pause-btn{background:linear-gradient(135deg,#f0ad35,#a96608)}
+.reset-btn{background:#293e59}
+.secondary-actions{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-top:10px}
+.secondary-actions button{font-size:12px}
+.back-btn{background:#263951}
+@media(max-width:650px){
+header{padding:12px 4vw}
+.brand-sub{display:none}
+.header-actions button{font-size:10px;padding:9px}
+.form-grid{grid-template-columns:1fr}
+.field.full{grid-column:auto}
+.team{padding:18px 8px}
+.team-name{font-size:clamp(17px,4vw,25px)}
+.score{font-size:clamp(58px,13vw,85px)}
+.timer{font-size:clamp(85px,22vw,140px)}
+}
+@media screen and (max-height:800px) and (min-width:651px){
+header{padding-top:7px;padding-bottom:7px}
+.logo{width:34px;height:34px;font-size:20px}
+main{padding-top:7px;padding-bottom:9px}
+.event-line{margin:1px 0 7px;font-size:10px}
+.timer-area{padding:8px 10px}
+.timer-label{font-size:10px;letter-spacing:3px}
+.timer{font-size:clamp(65px,9vw,112px);margin:3px 0}
+.period{padding:5px 12px;margin-bottom:6px}
+.team{padding:10px 14px}
+.team-name{font-size:clamp(17px,2vw,27px)}
+.score-label,.foul-label{font-size:9px;letter-spacing:2px}
+.team .score-label{margin-top:8px!important}
+.score{font-size:clamp(45px,6vw,70px);margin:2px 0 4px}
+.foul-block{margin-top:8px;padding-top:7px}
+.foul-count{font-size:clamp(28px,3.5vw,38px);margin:2px 0 5px}
+.foul-label{font-size:16px}
+.foul-plus,.foul-minus{width:36px;height:32px;font-size:19px}
+.foul-buttons{gap:7px}
+.controls{padding:8px;gap:8px}
+.controls button{min-width:115px;padding:9px 13px;font-size:12px}
+.secondary-actions{margin-top:7px;gap:7px}
+.secondary-actions button{padding:9px 12px;font-size:11px}
+}
+@media screen and (max-height:680px) and (min-width:651px){
+header{padding-top:5px;padding-bottom:5px}
+main{padding-top:4px;padding-bottom:5px}
+.timer-area{padding:5px 8px}
+.timer{font-size:clamp(58px,8vw,95px)}
+.team{padding:7px 10px}
+.score{font-size:clamp(40px,5vw,60px)}
+.foul-block{margin-top:5px;padding-top:5px}
+.foul-count{font-size:27px}
+.controls{padding:6px}
+.secondary-actions{margin-top:5px}
+}
+/* RIWAYAT PERTANDINGAN */
+.match-history{margin-top:20px;padding-top:15px;border-top:1px solid #ffffff25}
+.history-heading{color:#dcecff;font-size:12px;font-weight:900;letter-spacing:2px;margin-bottom:10px;text-align:left}
+.history-list{display:flex;flex-direction:column;gap:9px}
+.history-empty{color:#91a6bf;font-size:12px;text-align:center;padding:12px 8px;background:#061121;border:1px solid #ffffff18;border-radius:10px}
+.history-item{background:#061121;border:1px solid #38516d;border-radius:10px;padding:11px 12px}
+.history-match-title{font-size:12px;font-weight:900;color:#f7faff;margin-bottom:8px;overflow-wrap:anywhere}
+.history-match-date{color:#91a6bf;font-size:10px;font-weight:600;margin-left:5px}
+.history-table{display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:6px;align-items:center;font-size:11px}
+.history-table div{padding:5px 4px;border-bottom:1px solid #ffffff12}
+.history-table .history-th{color:#9db4ce;font-weight:900;text-align:center}
+.history-table .history-team{color:#dcecff;font-weight:800;overflow-wrap:anywhere}
+.history-table .history-value{text-align:center;font-weight:900;font-variant-numeric:tabular-nums}
+.history-status{color:#91a6bf;font-size:10px;margin-top:7px;text-align:right}
+</style>
+</head>
+
+<body>
+<header>
+  <div class="brand">
+    <div class="logo" id="brandLogo">⚽</div>
+    <div>
+      <div class="brand-title" id="brandTitle">Futsal Scoreboard</div>
+      <div class="brand-sub">TOURNAMENT MATCH CONTROL</div>
+    </div>
+  </div>
+  <div class="header-actions">
+    <button id="fullscreenBtn">⛶ FULLSCREEN</button>
+    <button id="soundBtn">🔊 SUARA AKTIF</button>
+  </div>
+</header>
+
+<main>
+<section id="setupScreen" class="setup-wrap">
+  <div class="setup-card">
+    <div class="setup-heading">
+      <div class="trophy">🏆</div>
+      <h1>Pengaturan Pertandingan</h1>
+      <p>Isi informasi pertandingan terlebih dahulu, lalu tekan OK untuk membuka papan skor.</p>
+    </div>
+
+    <div class="form-grid">
+      <div class="field full">
+        <label for="brandTitleInput">NAMA SCOREBOARD / PENYELENGGARA</label>
+        <input id="brandTitleInput" type="text" value="Futsal Scoreboard" placeholder="Contoh: Futsal Club">
+      </div>
+
+      <div class="field full">
+        <label for="brandLogoInput">LOGO KLUB / PENYELENGGARA</label>
+        <input id="brandLogoInput" type="file" accept="image/*">
+        <div class="hint" style="text-align:left;margin-top:0">Pilih gambar logo dari laptop. Logo akan tampil di bagian kiri atas.</div>
+      </div>
+
+      <div class="field full">
+        <label for="eventInput">NAMA TURNAMEN / KEJUARAAN</label>
+        <input id="eventInput" type="text" value="TURNAMEN FUTSAL" placeholder="Nama turnamen">
+      </div>
+
+      <div class="field team-field a">
+        <label for="homeInput">NAMA TIM A / HOME</label>
+        <input id="homeInput" type="text" value="TIM A" placeholder="Nama Tim A">
+      </div>
+
+      <div class="field team-field b">
+        <label for="awayInput">NAMA TIM B / AWAY</label>
+        <input id="awayInput" type="text" value="TIM B" placeholder="Nama Tim B">
+      </div>
+
+      <div class="field">
+        <label for="durationInput">WAKTU SETIAP BABAK (MENIT)</label>
+        <input id="durationInput" type="number" min="1" max="99" value="20">
+      </div>
+
+      <div class="field">
+        <label>BABAK PERTANDINGAN</label>
+        <input type="text" value="Babak 1" readonly>
+      </div>
+    </div>
+
+    <button class="ok-btn" id="okBtn">✓ OK — TAMPILKAN PAPAN SKOR</button>
+    <div class="hint">Pastikan nama tim dan durasi sudah benar sebelum pertandingan dimulai.</div>
+
+    <div class="match-history" id="historySection">
+      <div class="history-heading">RIWAYAT PERTANDINGAN</div>
+      <div id="historyList" class="history-list">
+        <div class="history-empty">Belum ada riwayat pertandingan.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="matchScreen" class="hidden">
+  <div class="event-line" id="eventDisplay">TURNAMEN FUTSAL</div>
+
+  <div class="timer-card">
+    <div class="timer-area">
+      <div class="period" id="periodDisplay">BABAK 1</div>
+      <div class="timer-label">WAKTU PERTANDINGAN</div>
+      <div class="timer" id="timer">20:00</div>
+    </div>
+
+    <div class="team-grid">
+      <div class="team home">
+        <div class="team-label">HOME TEAM</div>
+        <div class="team-name" id="homeDisplay">TIM A</div>
+        <div class="score-label" style="margin-top:18px">SKOR</div>
+        <div class="score" id="homeScore">0</div>
+        <div class="score-buttons">
+          <button id="homeScoreMinus">−</button>
+          <button id="homeScorePlus">+</button>
+        </div>
+        <div class="foul-block">
+          <div class="foul-label">FOUL</div>
+          <div class="foul-count" id="homeFoul">0</div>
+          <div class="foul-buttons">
+            <button class="foul-minus" id="homeFoulMinus" aria-label="Kurangi foul Tim A">−</button>
+            <button class="foul-plus" id="homeFoulPlus" aria-label="Tambah foul Tim A">+</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="team away">
+        <div class="team-label">AWAY TEAM</div>
+        <div class="team-name" id="awayDisplay">TIM B</div>
+        <div class="score-label" style="margin-top:18px">SKOR</div>
+        <div class="score" id="awayScore">0</div>
+        <div class="score-buttons">
+          <button id="awayScoreMinus">−</button>
+          <button id="awayScorePlus">+</button>
+        </div>
+        <div class="foul-block">
+          <div class="foul-label">FOUL</div>
+          <div class="foul-count" id="awayFoul">0</div>
+          <div class="foul-buttons">
+            <button class="foul-minus" id="awayFoulMinus" aria-label="Kurangi foul Tim B">−</button>
+            <button class="foul-plus" id="awayFoulPlus" aria-label="Tambah foul Tim B">+</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button class="pause-btn" id="pauseBtn">Ⅱ PAUSE WAKTU</button>
+      <button class="reset-btn" id="resetBtn">↺ RESET WAKTU</button>
+    </div>
+  </div>
+
+  <div class="secondary-actions">
+    <button class="back-btn" id="backBtn">⚙ KEMBALI KE PENGATURAN</button>
+    <button class="back-btn" id="nextHalfBtn">BABAK BERIKUTNYA →</button>
+    <button class="back-btn" id="newMatchBtn">PERTANDINGAN BARU</button>
+  </div>
+</section>
+</main>
+
+<script>
+const $ = id => document.getElementById(id);
+
+// PENGATURAN NAMA DAN LOGO PENYELENGGARA
+
+function applyBranding(name, logoData) {
+  const brandName = (name || 'Futsal Scoreboard').trim() || 'Futsal Scoreboard';
+
+  $('brandTitle').textContent = brandName;
+  document.title = brandName + ' - Scoreboard';
+
+  const logo = $('brandLogo');
+
+  if (logoData) {
+    logo.innerHTML = '';
+
+    const image = document.createElement('img');
+    image.src = logoData;
+    image.alt = 'Logo penyelenggara';
+
+    logo.appendChild(image);
+    logo.classList.add('has-image');
+  } else {
+    logo.textContent = '⚽';
+    logo.classList.remove('has-image');
+  }
+}
+
+function loadBranding() {
+  const savedName = localStorage.getItem('futsalBrandName') || 'Futsal Scoreboard';
+  const savedLogo = localStorage.getItem('futsalBrandLogo') || '';
+
+  $('brandTitleInput').value = savedName;
+  applyBranding(savedName, savedLogo);
+}
+
+$('brandTitleInput').addEventListener('input', () => {
+  const name = $('brandTitleInput').value.trim() || 'Futsal Scoreboard';
+
+  localStorage.setItem('futsalBrandName', name);
+  applyBranding(name, localStorage.getItem('futsalBrandLogo') || '');
+});
+
+$('brandLogoInput').addEventListener('change', event => {
+  const file = event.target.files && event.target.files[0];
+
+  if (!file) return;
+
+  if (!file.type.startsWith('image/')) {
+    alert('Silakan pilih file gambar untuk logo.');
+    event.target.value = '';
+    return;
+  }
+
+  if (file.size > 2 * 1024 * 1024) {
+    alert('Ukuran logo maksimal 2 MB. Silakan pilih gambar yang lebih kecil.');
+    event.target.value = '';
+    return;
+  }
+
+  const reader = new FileReader();
+
+  reader.onload = () => {
+    const logoData = reader.result;
+
+    try {
+      localStorage.setItem('futsalBrandLogo', logoData);
+      applyBranding($('brandTitleInput').value, logoData);
+    } catch (error) {
+      alert('Logo tidak dapat disimpan. Coba gunakan gambar dengan ukuran lebih kecil.');
+    }
+  };
+
+  reader.readAsDataURL(file);
+});
+
+let duration = 20;
+let remaining = duration * 60;
+let half = 1;
+let running = false;
+let interval = null;
+let soundOn = true;
+
+let score = {home:0,away:0};
+let foul = {home:0,away:0};
+
+let matchHistory = [];
+let activeMatch = null;
+
+try {
+  matchHistory = JSON.parse(localStorage.getItem('futsalMatchHistory') || '[]');
+
+  if (!Array.isArray(matchHistory)) matchHistory = [];
+} catch(error) {
+  matchHistory = [];
+}
+
+function saveHistoryStorage() {
+  try {
+    localStorage.setItem('futsalMatchHistory',JSON.stringify(matchHistory));
+  } catch(error) {
+    console.log('Riwayat tidak dapat disimpan:',error);
+  }
+}
+
+function escapeHistoryText(value) {
+  return String(value).replace(/[&<>"']/g,character=>({
+    '&':'&amp;',
+    '<':'&lt;',
+    '>':'&gt;',
+    '"':'&quot;',
+    "'":'&#39;'
+  })[character]);
+}
+
+function renderHistory() {
+  const list = $('historyList');
+
+  if (!list) return;
+
+  const records = [...matchHistory];
+
+  if (activeMatch && activeMatch.halves.length > 0) {
+    records.unshift({...activeMatch,ongoing:true});
+  }
+
+  if (records.length === 0) {
+    list.innerHTML = '<div class="history-empty">Belum ada riwayat pertandingan.</div>';
+    return;
+  }
+
+  list.innerHTML = records.map(record=>`
+    <div class="history-item">
+      <div class="history-match-title">
+        ${escapeHistoryText(record.homeName)} vs ${escapeHistoryText(record.awayName)}
+        <span class="history-match-date">${escapeHistoryText(record.date || '')}</span>
+      </div>
+
+      <div class="history-table">
+        <div></div>
+        <div class="history-th">BABAK 1</div>
+        <div class="history-th">BABAK 2</div>
+
+        <div class="history-team">SKOR ${escapeHistoryText(record.homeName)}</div>
+        <div class="history-value">${record.halves[0]?record.halves[0].homeScore:'—'}</div>
+        <div class="history-value">${record.halves[1]?record.halves[1].homeScore:'—'}</div>
+
+        <div class="history-team">SKOR ${escapeHistoryText(record.awayName)}</div>
+        <div class="history-value">${record.halves[0]?record.halves[0].awayScore:'—'}</div>
+        <div class="history-value">${record.halves[1]?record.halves[1].awayScore:'—'}</div>
+
+        <div class="history-team">FOUL ${escapeHistoryText(record.homeName)}</div>
+        <div class="history-value">${record.halves[0]?record.halves[0].homeFoul:'—'}</div>
+        <div class="history-value">${record.halves[1]?record.halves[1].homeFoul:'—'}</div>
+
+        <div class="history-team">FOUL ${escapeHistoryText(record.awayName)}</div>
+        <div class="history-value">${record.halves[0]?record.halves[0].awayFoul:'—'}</div>
+        <div class="history-value">${record.halves[1]?record.halves[1].awayFoul:'—'}</div>
+      </div>
+
+      <div class="history-status">${record.ongoing?'Pertandingan berlangsung':'Pertandingan selesai'}</div>
+    </div>
+  `).join('');
+}
+
+function createActiveMatch() {
+  activeMatch = {
+    homeName:$('homeDisplay').textContent,
+    awayName:$('awayDisplay').textContent,
+    date:new Date().toLocaleString('id-ID'),
+    halves:[]
+  };
+}
+
+function saveCurrentHalfToHistory() {
+  if (!activeMatch || activeMatch.halves.some(item=>item.half===half)) return;
+
+  activeMatch.halves.push({
+    half,
+    homeScore:score.home,
+    awayScore:score.away,
+    homeFoul:foul.home,
+    awayFoul:foul.away
+  });
+}
+
+function finishActiveMatchHistory() {
+  if (!activeMatch) return;
+
+  saveCurrentHalfToHistory();
+
+  if (activeMatch.halves.length > 0) {
+    matchHistory.unshift(activeMatch);
+    matchHistory = matchHistory.slice(0,10);
+    saveHistoryStorage();
+  }
+
+  activeMatch = null;
+  renderHistory();
+}
+
+function formatTime(seconds) {
+  const minutes = Math.floor(seconds/60);
+  const secs = seconds%60;
+
+  return String(minutes).padStart(2,'0')+':'+String(secs).padStart(2,'0');
+}
+
+function render() {
+  $('timer').textContent = formatTime(remaining);
+
+  $('timer').classList.toggle('paused',!running && remaining>0);
+  $('timer').classList.toggle('finished',remaining===0);
+
+  $('homeScore').textContent = score.home;
+  $('awayScore').textContent = score.away;
+
+  $('homeFoul').textContent = foul.home;
+  $('awayFoul').textContent = foul.away;
+
+  $('homeFoul').classList.toggle('alert',foul.home>=5);
+  $('awayFoul').classList.toggle('alert',foul.away>=5);
+
+  $('pauseBtn').textContent = running?'Ⅱ PAUSE WAKTU':'▶ LANJUTKAN WAKTU';
+  $('periodDisplay').textContent = 'BABAK '+half;
+}
+
+function stopTimer() {
+  running = false;
+
+  if (interval !== null) {
+    clearInterval(interval);
+    interval = null;
+  }
+
+  render();
+}
+
+function startTimer() {
+  if (running || remaining<=0) return;
+
+  running = true;
+  render();
+
+  interval = setInterval(()=>{
+    remaining--;
+
+    if (remaining<=0) {
+      remaining = 0;
+      stopTimer();
+      playWhistle();
+      alert('Waktu pertandingan telah habis!');
+    } else {
+      render();
+    }
+  },1000);
+}
+
+function playWhistle() {
+  if (!soundOn) return;
+
+  try {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    const ctx = new AudioCtx();
+    const now = ctx.currentTime;
+
+    [0,0.25,0.5].forEach(delay=>{
+      const oscillator = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      oscillator.type = 'sawtooth';
+      oscillator.frequency.value = 1900;
+
+      gain.gain.setValueAtTime(0.0001,now+delay);
+      gain.gain.exponentialRampToValueAtTime(0.18,now+delay+0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001,now+delay+0.2);
+
+      oscillator.connect(gain);
+      gain.connect(ctx.destination);
+
+      oscillator.start(now+delay);
+      oscillator.stop(now+delay+0.22);
+    });
+
+    setTimeout(()=>ctx.close(),1200);
+
+  } catch(error) {
+    console.log('Audio tidak tersedia:',error);
+  }
+}
+
+function resetTimer() {
+  stopTimer();
+  remaining = duration*60;
+  render();
+}
+
+// TOMBOL OK
+
+$('okBtn').addEventListener('click',()=>{
+  const eventName = $('eventInput').value.trim() || 'TURNAMEN FUTSAL';
+  const homeName = $('homeInput').value.trim();
+  const awayName = $('awayInput').value.trim();
+  const newDuration = Number($('durationInput').value);
+
+  if (!homeName || !awayName) {
+    alert('Nama Tim A dan Tim B harus diisi.');
+    return;
+  }
+
+  if (!Number.isInteger(newDuration) || newDuration<1 || newDuration>99) {
+    alert('Durasi harus antara 1 sampai 99 menit.');
+    return;
+  }
+
+  stopTimer();
+
+  if (activeMatch) finishActiveMatchHistory();
+
+  duration = newDuration;
+  remaining = duration*60;
+  half = 1;
+
+  score = {home:0,away:0};
+  foul = {home:0,away:0};
+
+  $('eventDisplay').textContent = eventName;
+  $('homeDisplay').textContent = homeName;
+  $('awayDisplay').textContent = awayName;
+
+  createActiveMatch();
+  renderHistory();
+
+  $('setupScreen').classList.add('hidden');
+  $('matchScreen').classList.remove('hidden');
+
+  render();
+});
+
+// PAUSE DAN LANJUTKAN
+
+$('pauseBtn').addEventListener('click',()=>{
+  if (running) stopTimer();
+  else startTimer();
+});
+
+// RESET WAKTU
+
+$('resetBtn').addEventListener('click',()=>{
+  if (confirm('Reset waktu ke durasi awal babak?')) resetTimer();
+});
+
+// FOUL TIM A
+
+$('homeFoulPlus').addEventListener('click',()=>{
+  foul.home++;
+  render();
+});
+
+$('homeFoulMinus').addEventListener('click',()=>{
+  foul.home = Math.max(0,foul.home-1);
+  render();
+});
+
+// FOUL TIM B
+
+$('awayFoulPlus').addEventListener('click',()=>{
+  foul.away++;
+  render();
+});
+
+$('awayFoulMinus').addEventListener('click',()=>{
+  foul.away = Math.max(0,foul.away-1);
+  render();
+});
+
+// SKOR TIM A
+
+$('homeScorePlus').addEventListener('click',()=>{
+  score.home++;
+  render();
+});
+
+$('homeScoreMinus').addEventListener('click',()=>{
+  score.home = Math.max(0,score.home-1);
+  render();
+});
+
+// SKOR TIM B
+
+$('awayScorePlus').addEventListener('click',()=>{
+  score.away++;
+  render();
+});
+
+$('awayScoreMinus').addEventListener('click',()=>{
+  score.away = Math.max(0,score.away-1);
+  render();
+});
+
+// KEMBALI KE PENGATURAN
+
+$('backBtn').addEventListener('click',()=>{
+  stopTimer();
+  finishActiveMatchHistory();
+
+  $('eventInput').value = $('eventDisplay').textContent;
+  $('homeInput').value = $('homeDisplay').textContent;
+  $('awayInput').value = $('awayDisplay').textContent;
+  $('durationInput').value = duration;
+
+  $('matchScreen').classList.add('hidden');
+  $('setupScreen').classList.remove('hidden');
+});
+
+// BABAK BERIKUTNYA
+
+$('nextHalfBtn').addEventListener('click',()=>{
+  if (half===2) {
+    alert('Pertandingan sudah berada di Babak 2.');
+    return;
+  }
+
+  if (!confirm('Mulai Babak 2? Timer akan diatur ulang.')) return;
+
+  stopTimer();
+  saveCurrentHalfToHistory();
+  renderHistory();
+
+  half = 2;
+  remaining = duration*60;
+  foul = {home:0,away:0};
+
+  render();
+});
+
+// PERTANDINGAN BARU
+
+$('newMatchBtn').addEventListener('click',()=>{
+  if (!confirm('Mulai pertandingan baru dan reset semua skor serta foul?')) return;
+
+  stopTimer();
+  finishActiveMatchHistory();
+
+  half = 1;
+  remaining = duration*60;
+
+  score = {home:0,away:0};
+  foul = {home:0,away:0};
+
+  createActiveMatch();
+  renderHistory();
+  render();
+});
+
+// FULLSCREEN
+
+$('fullscreenBtn').addEventListener('click',async()=>{
+  try {
+    if (!document.fullscreenElement) {
+      await document.documentElement.requestFullscreen();
+    } else {
+      await document.exitFullscreen();
+    }
+  } catch(error) {
+    alert('Mode fullscreen tidak tersedia.');
+  }
+});
+
+// SUARA PELUIT
+
+$('soundBtn').addEventListener('click',()=>{
+  soundOn = !soundOn;
+
+  $('soundBtn').textContent = soundOn
+    ? '🔊 SUARA AKTIF'
+    : '🔇 SUARA MATI';
+});
+
+// TAMPILKAN DATA AWAL
+
+render();
+renderHistory();
+loadBranding();
+</script>
+</body>
+</html>
